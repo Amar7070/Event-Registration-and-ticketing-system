@@ -16,13 +16,12 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy To Docker Compose') {
             steps {
-                script {
-                    // Start or update all services in detached mode
-                    sh 'docker compose up -d'
-                }
+                sh '''
+                    docker compose down --remove-orphans || true
+                    docker compose up -d --build
+                '''
             }
         }
 
