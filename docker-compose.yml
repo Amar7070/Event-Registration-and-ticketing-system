@@ -2,7 +2,6 @@ services:
   # 1. MySQL Database Service
   db:
     image: mysql:8.0
-    container_name: smartevent_db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: smartevent
@@ -24,7 +23,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: smartevent_backend
     restart: unless-stopped
     depends_on:
       db:
@@ -58,7 +56,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: smartevent_frontend
     restart: unless-stopped
     depends_on:
       - backend
