@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartEvent — Discover & Book Premium Events</title>
+    <!-- Prevent flash of dark mode: apply saved theme BEFORE React mounts -->
+    <script>
+      (function() {
+        var saved = localStorage.getItem('darkMode');
+        // Default is light. Only enable dark if user has explicitly saved 'true'.
+        if (saved === 'true') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent Alpine.js Flash of Unstyled Content (FOUC) */
+[x-cloak] {
+    display: none !important;
+}
+
+@layer base {
+    body {
+        @apply bg-[#FDFBF7] text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans relative;
+    }
+
+
+
+    h1, h2, h3, h4 {
+        @apply font-serif;
+    }
+}
+
+@layer components {
+    /* Premium Buttons */
+    .btn {
+        @apply inline-flex items-center justify-center px-6 py-3 rounded-full font-semibold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    }
+    .btn-primary { 
+        @apply btn bg-primary text-white hover:bg-primary-600 shadow-premium hover:shadow-premium-hover; 
+    }
+    .btn-outline { 
+        @apply btn bg-transparent text-primary border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5; 
+    }
+    .btn-white { 
+        @apply btn bg-white text-slate-900 border border-slate-100 hover:bg-slate-50 shadow-sm; 
+    }
+    .btn-ghost { 
+        @apply btn text-slate-600 hover:bg-slate-100/50; 
+    }
+
+    /* Cards */
+    .premium-card {
+        @apply bg-white rounded-2xl border border-slate-100 shadow-premium hover:shadow-premium-hover transition-all duration-500 overflow-hidden;
+    }
+
+    /* Form Inputs */
+    .form-input {
+        @apply w-full rounded-xl border-slate-200 dark:border-slate-800 bg-[#F3F2EB] dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-5 py-3.5 text-sm transition-all duration-300 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none placeholder:text-slate-400;
+    }
+
+    /* Status Badges */
+    .status-pill {
+        @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider;
+    }
+    .status-pill-success { @apply status-pill bg-primary-100 text-primary-700; }
+    .status-pill-warning { @apply status-pill bg-amber-100 text-amber-700; }
+    .status-pill-danger { @apply status-pill bg-rose-100 text-rose-700; }
+
+    /* Navigation */
+    .sidebar-link {
+        @apply flex items-center gap-3 px-5 py-4 rounded-2xl text-slate-500 transition-all duration-300 hover:text-primary hover:bg-primary-50;
+    }
+    .sidebar-link-active {
+        @apply text-primary bg-primary-50 font-semibold;
+    }
+
+    /* Typography Utilities */
+    .heading-display { @apply text-5xl md:text-7xl font-serif tracking-tight leading-tight; }
+    .heading-section { @apply text-3xl md:text-4xl font-serif tracking-tight; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { @apply bg-cream dark:bg-slate-900; }
+::-webkit-scrollbar-thumb { @apply bg-slate-200 dark:bg-slate-800 rounded-full hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors; }
+
+/* Transitions */
+.page-transition {
+    @apply transition-all duration-500 ease-out;
+}

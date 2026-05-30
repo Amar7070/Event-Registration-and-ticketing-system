@@ -1,0 +1,219 @@
+========================================================================
+     SMARTEVENT TICKETING SYSTEM - EC2 UBUNTU DEPLOYMENT GUIDE
+========================================================================
+
+This guide provides step-by-step instructions to deploy the containerized 
+SmartEvent Ticketing System on an AWS EC2 Ubuntu instance and integrate the 
+Jenkins CI/CD pipeline.
+
+---
+
+1. PREPARING THE AWS EC2 INSTANCE
+=================================
+
+1.1 Provision EC2 Instance
+- Log in to your AWS Management Console.
+- Navigate to the EC2 Dashboard and click "Launch Instance".
+- Name your instance (e.g., "SmartEvent-Production").
+- OS Image (AMI): Choose Ubuntu Server 22.04 LTS (64-bit x86).
+- Instance Type: Choose t3.medium or t2.medium.
+  (Reason: Running React build, Laravel PHP, and MySQL concurrently requires
+   at least 2 vCPUs and 4GB RAM to prevent memory-exhaustion builds).
+- Key Pair: Create or select an existing SSH Key Pair (.pem) and download it.
+- Storage: 20GB - 30GB gp3 SSD is recommended.
+
+1.2 Configure Security Group (Inbound Rules)
+Add the following inbound rules to the instance's Security Group:
+- Port 22 (SSH)      --> My IP (Secure Access)
+- Port 80 (HTTP)     --> Anywhere (0.0.0.0/0) (For user access to Frontend)
+- Port 443 (HTTPS)   --> Anywhere (0.0.0.0/0) (For secure SSL user access)
+- Port 8080 (HTTP)   --> Anywhere or your IP  (Only needed if Jenkins runs here)
+*NOTE: You do NOT need to open Port 8000 or 3306. They are securely isolated
+       within the internal Docker network, reachable only via our Nginx proxy.*
+
+---
+
+2. HOST INSTANCE CONFIGURATION (DOCKER & DOCKER COMPOSE)
+========================================================
+
+SSH into your Ubuntu instance using your terminal:
+$ ssh -i "your-key.pem" ubuntu@<your-ec2-public-ip>
+
+2.1 Install Docker Engine
+Run the following commands to install the latest Docker engine:
+$ sudo apt update && sudo apt upgrade -y
+$ sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$ sudo apt update
+$ sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+2.2 Install Docker Compose Plugin
+Install the modern Docker Compose v2 CLI plugin:
+$ sudo apt install -y docker-compose-plugin
+
+2.3 Manage Docker as a Non-Root User
+Allow the default 'ubuntu' user to run docker commands without sudo:
+$ sudo usermod -aG docker ubuntu
+$ newgrp docker
+
+Verify installation is correct:
+$ docker --version
+$ docker compose version
+
+---
+
+3. DEPLOYING THE APPLICATION MANUALLY
+======================================
+
+If you want to quickly test the application on EC2 manually before automating 
+with Jenkins:
+
+3.1 Clone the Project
+$ git clone <your-repository-git-url> SmartEvent-Ticketing-System
+$ cd SmartEvent-Ticketing-System
+
+3.2 Set Up Environment Variables
+Copy the template .env file and set up Laravel configuration:
+$ cp backend/.env.example backend/.env
+
+Edit the `.env` file to customize keys:
+$ nano backend/.env
+
+Make sure database credentials in `backend/.env` match `docker-compose.yml`:
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=smartevent
+DB_USERNAME=root
+DB_PASSWORD=root
+
+3.3 Build and Launch Containers
+Run the Docker Compose orchestration in detached mode:
+$ docker compose up -d --build
+
+3.4 Initialize Laravel Key, Migrations, and Seeders
+Generate the application key:
+$ docker compose exec backend php artisan key:generate
+
+Run the migrations and seed database with demo data:
+$ docker compose exec backend php artisan migrate --seed
+
+Create the symlink for public storage:
+$ docker compose exec backend php artisan storage:link
+
+Open your web browser and go to `http://<your-ec2-public-ip>`. The React SPA
+will load and connect seamlessly to the Laravel API using the reverse proxy!
+
+---
+
+4. SETTING UP JENKINS CI/CD SERVER
+==================================
+
+If you want to host Jenkins on the same EC2 instance or a separate machine:
+
+4.1 Install Java Development Kit (JDK)
+$ sudo apt update
+$ sudo apt install -y openjdk-17-jdk
+
+4.2 Install Jenkins
+$ curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+$ echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+$ sudo apt update
+$ sudo apt install -y jenkins
+$ sudo systemctl enable --now jenkins
+
+4.3 Allow Jenkins to run Docker commands
+$ sudo usermod -aG docker jenkins
+$ sudo systemctl restart jenkins
+
+4.4 Configure Jenkins UI
+- Open `http://<your-ec2-public-ip>:8080` in your browser.
+- Fetch the initial administrator password from the server:
+  $ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+- Copy it, paste it into the Jenkins UI, and install the "Suggested Plugins".
+- Go to Dashboard -> Manage Jenkins -> Plugins -> Available Plugins.
+- Search for and install the "SSH Agent" plugin, then restart Jenkins.
+
+---
+
+5. CONFIGURING THE JENKINS PIPELINE
+===================================
+
+5.1 Add SSH Key Credentials in Jenkins
+- Go to Dashboard -> Manage Jenkins -> Credentials -> System -> Global credentials -> Add Credentials.
+- Kind: "SSH Username with private key".
+- ID: "ec2-ssh-key" (Must exactly match the SSH_CREDENTIALS_ID in your Jenkinsfile).
+- Username: "ubuntu"
+- Private Key: Click "Enter directly" and paste the entire contents of your EC2 `.pem` private key file.
+- Save.
+
+5.2 Create the Pipeline Job
+- Go to Dashboard -> New Item.
+- Enter name "SmartEvent-CI-CD", select "Pipeline" and click OK.
+- Scroll down to the "Pipeline" section.
+- Definition: Select "Pipeline script from SCM".
+- SCM: Select "Git".
+- Repository URL: Enter your Git repository URL.
+- Credentials: Add Git credentials if your repository is private.
+- Script Path: "Jenkinsfile"
+- Save.
+
+5.3 Run the Pipeline
+Click "Build Now". Jenkins will automatically:
+1. Pull your code.
+2. Build images locally.
+3. Start isolated containers and run Laravel unit tests (`php artisan test`).
+4. SSH securely into EC2, update code files, build docker-compose on production, run migrations, and cache files for production speeds!
+
+---
+
+6. BONUS: ADDING FREE SSL (HTTPS) WITH LET'S ENCRYPT
+======================================================
+
+To make your SmartEvent deployment professional and secure, route HTTP traffic 
+securely through SSL.
+
+6.1 Point your Domain Name
+Point your domain name (e.g. `smartevent.com`) to the EC2 Public IP using an A Record in Route 53 or your DNS manager.
+
+6.2 Install Certbot and Nginx on the Host
+$ sudo apt install -y nginx certbot python3-certbot-nginx
+
+6.3 Configure Host Nginx as a Reverse Proxy
+Create a virtual host configuration file:
+$ sudo nano /etc/nginx/sites-available/smartevent
+
+Paste the following configuration:
+------------------------------------------------------------------------
+server {
+    listen 80;
+    server_name smartevent.com www.smartevent.com; # Replace with your domain
+
+    location / {
+        proxy_pass http://127.0.0.1:80; # Directs traffic into Frontend Container
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+------------------------------------------------------------------------
+
+Enable the site and restart Nginx:
+$ sudo ln -s /etc/nginx/sites-available/smartevent /etc/nginx/sites-enabled/
+$ sudo rm /etc/nginx/sites-enabled/default
+$ sudo nginx -t
+$ sudo systemctl restart nginx
+
+*NOTE: Since Host Nginx is now listening on Port 80, go to `docker-compose.yml` 
+       and change frontend port binding from `"80:80"` to `"127.0.0.1:80:80"` 
+       (or `"8081:80"`, and update proxy_pass to `http://127.0.0.1:8081`) 
+       to prevent port binding conflicts on the host!*
+
+6.4 Get Let's Encrypt SSL Certificate
+Run Certbot to fetch and install the certificate automatically:
+$ sudo certbot --nginx -d smartevent.com -d www.smartevent.com
+
+Follow the prompts. Certbot will configure SSL and automatic HTTPS redirection.
+Your site is now securely accessible at `https://smartevent.com`!

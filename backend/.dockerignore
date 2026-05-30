@@ -1,0 +1,8 @@
+node_modules
+vendor
+.git
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*.php
+storage/logs/*.log
+.env
