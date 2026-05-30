@@ -63,7 +63,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80" # The main port for clients to connect
+      - "3000:80" # The main port for clients to connect
     networks:
       - smartevent_network
 
