@@ -258,7 +258,7 @@ export default function Home() {
             <div className="flex flex-col justify-center order-1 lg:order-2 text-left z-10 relative">
               <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-[#4E7D5B]/10 dark:bg-[#4E7D5B]/20 border border-[#4E7D5B]/20 w-fit mb-8 backdrop-blur-sm">
                 <span className="w-2 h-2 rounded-full bg-[#4E7D5B] animate-pulse shadow-[0_0_10px_rgba(78,125,91,0.8)]"></span>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#4E7D5B] dark:text-[#8ac99d]">AI-Powered Ticketing & Registrations</span>
+                
               </div>
 
               <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif text-slate-900 dark:text-white leading-[1.05] tracking-tight mb-8">
