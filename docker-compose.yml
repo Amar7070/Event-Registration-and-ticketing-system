@@ -22,7 +22,7 @@ services:
   # 2. Backend Laravel Service
   # Image is pulled from Docker Hub — built and pushed by the Jenkins pipeline
   backend:
-    image: your-dockerhub-username/smartevent-backend:latest
+    image: amarsahani/smartevent-backend:latest
     container_name: smartevent_backend
     restart: unless-stopped
     depends_on:
@@ -55,7 +55,7 @@ services:
   # 3. Frontend React Service
   # Image is pulled from Docker Hub — built and pushed by the Jenkins pipeline
   frontend:
-    image: your-dockerhub-username/smartevent-frontend:latest
+    image: amarsahani/smartevent-frontend:latest
     container_name: smartevent_frontend
     restart: unless-stopped
     depends_on:

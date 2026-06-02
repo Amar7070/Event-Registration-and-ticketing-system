@@ -5,7 +5,7 @@ pipeline {
         // -------------------------------------------------------
         // UPDATE THIS to your Docker Hub username
         // -------------------------------------------------------
-        DOCKERHUB_USERNAME = "your-dockerhub-username"
+        DOCKERHUB_USERNAME = "amarsahani"
         BACKEND_IMAGE      = "${DOCKERHUB_USERNAME}/smartevent-backend"
         FRONTEND_IMAGE     = "${DOCKERHUB_USERNAME}/smartevent-frontend"
         IMAGE_TAG          = "${BUILD_NUMBER}"
