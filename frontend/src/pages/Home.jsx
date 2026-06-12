@@ -264,7 +264,7 @@ export default function Home() {
               <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif text-slate-900 dark:text-white leading-[1.05] tracking-tight mb-8">
                 Host <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4E7D5B] to-emerald-500 italic relative inline-block">Beautiful, Seamless</span> <br />
-                Experiences.
+                Experience.
               </h1>
 
               <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-xl mb-12">
